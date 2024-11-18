@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  @font-face {
+    font-family: 'Inter-400';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/assets/fonts/Inter_400-Regular.ttf') format('truetype');
+  }
+
+  @font-face {
+    font-family: 'Inter-500';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('/assets/fonts/Inter_500-Medium.ttf') format('truetype');
+  }
+
+  @font-face {
+    font-family: 'Inter-600';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('/assets/fonts/Inter_600-SemiBold.ttf') format('truetype');
+  }
+
+  @font-face {
+    font-family: 'Inter-700';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/assets/fonts/Inter_700-Bold.ttf') format('truetype');
+  }
+}
+
+@layer base {
+  body {
+    font-family: 'Inter-600', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: 0;
+
+    color: theme('colors.mainPrimaryText');
+    background-color: theme('colors.mainBackground');
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  img {
+    object-fit: cover;
+  }
+}
