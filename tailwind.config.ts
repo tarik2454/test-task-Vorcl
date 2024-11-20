@@ -7,6 +7,7 @@ export default {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
     './node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}',
+    './src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {
@@ -14,8 +15,12 @@ export default {
         customBlue: {
           100: '#0070F3',
         },
+        customPink: {
+          100: '#FF6AFD',
+        },
         mainPrimaryText: '#FFFFFF',
         mainBackground: '#121212',
+        secondaryBackground: '#171717',
         white: '#FFFFFF',
         current: 'currentColor',
         transparent: 'transparent',
@@ -42,10 +47,12 @@ export default {
         xl: '1440px',
         '2xl': '-1px',
       },
+
       borderRadius: {
-        sm: '8px',
-        md: '16px',
-        lg: '29px',
+        sm: '10px',
+        md: '11px',
+        lg: '12px',
+        xl: '24px',
       },
       boxShadow: {
         custom: '0 2px 25px rgba(0, 112, 243, 0.59)',

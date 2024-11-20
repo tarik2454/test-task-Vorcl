@@ -1,3 +1,10 @@
+import Container from '@/shared/Container/Container';
+import NavBar from './components/NavBar';
+
 export default function Header() {
-  return <div>Header</div>;
+  return (
+    <header className="flex justify-center items-center absolute top-[85px] left-1/2 transform -translate-x-1/2">
+      <NavBar />
+    </header>
+  );
 }

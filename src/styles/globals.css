@@ -56,3 +56,23 @@
     object-fit: cover;
   }
 }
+
+.svg-style {
+  svg g {
+    g:nth-child(6) {
+      g {
+        path {
+          fill: rgb(172, 3, 3) !important;
+        }
+      }
+    }
+
+    g:nth-child(8) {
+      g {
+        path {
+          fill: white !important;
+        }
+      }
+    }
+  }
+}

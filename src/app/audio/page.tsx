@@ -1,3 +1,5 @@
+import VoiceRecording from '@/modules/voiceRecording/VoiceRecording';
+
 export default function Audio() {
-  return <div>Root</div>;
+  return <VoiceRecording />;
 }

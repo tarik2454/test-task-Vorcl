@@ -17,10 +17,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="h-screen">
+      <body className="flex justify-center items-center w-full h-screen relative">
         <Providers>
           <Header />
-          <main>{children}</main>
+          <main className="">{children}</main>
         </Providers>
       </body>
     </html>
