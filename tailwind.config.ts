@@ -12,11 +12,19 @@ export default {
   theme: {
     extend: {
       colors: {
+        customBlack: {
+          100: '#27272A',
+        },
         customBlue: {
           100: '#0070F3',
+          200: '#006FEE',
         },
         customPink: {
           100: '#FF6AFD',
+        },
+        customGrey: {
+          100: '#ECEDEE',
+          200: '#D4D4D8',
         },
         mainPrimaryText: '#FFFFFF',
         mainBackground: '#121212',
@@ -26,7 +34,7 @@ export default {
         transparent: 'transparent',
       },
       fontFamily: {
-        sans: ['Inter-400', 'sans-serif'],
+        'inter-400': ['Inter-400', 'sans-serif'],
         'inter-500': ['Inter-500', 'sans-serif'],
         'inter-600': ['Inter-600', 'sans-serif'],
         'inter-700': ['Inter-700', 'sans-serif'],
@@ -65,41 +73,7 @@ export default {
 
   plugins: [
     nextui({
-      layout: {
-        dividerWeight: '1px',
-        disabledOpacity: 0.5,
-
-        fontSize: {
-          tiny: '0.75rem',
-          small: '0.875rem',
-          medium: '1rem',
-          large: '1.125rem',
-        },
-        lineHeight: {
-          tiny: '1rem',
-          small: '1.25rem',
-          medium: '1.5rem',
-          large: '1.75rem',
-        },
-        radius: {
-          small: '8px',
-          medium: '12px',
-          large: '14px',
-        },
-        borderWidth: {
-          small: '1px',
-          medium: '2px',
-          large: '3px',
-        },
-      },
-      themes: {
-        light: {
-          layout: {},
-        },
-        dark: {
-          layout: {},
-        },
-      },
+      layout: {},
     }),
   ],
 } satisfies Config;

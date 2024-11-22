@@ -1,4 +1,3 @@
-import Container from '@/shared/Container/Container';
 import NavBar from './components/NavBar';
 
 export default function Header() {

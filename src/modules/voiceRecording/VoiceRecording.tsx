@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useLottie } from 'lottie-react';
 import freeVoiceAnimation from '../../assets/animations/freeVoiceAnimation.json';
 import { LiveAudioVisualizer } from 'react-audio-visualize';
+import Section from '@/shared/components/Section';
 
 export default function VoiceRecording() {
   const { View, play, stop } = useLottie({
@@ -21,14 +22,120 @@ export default function VoiceRecording() {
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const [isClient, setIsClient] = useState(false);
+  const wsRef = useRef<WebSocket | null>(null);
+  const sessionId = useRef<string | null>(null); // Добавим ссылку для сессии
 
   useEffect(() => {
-    setIsClient(true);
+    // Инициализация WebSocket
+    const ws = new WebSocket('wss://api.openai.com/v1/realtime');
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log('WebSocket подключен');
+
+      // Отправляем API ключ для аутентификации
+      ws.send(
+        JSON.stringify({ type: 'authenticate', api_key: 'YOUR_API_KEY' })
+      );
+
+      // Создаем сеанс после аутентификации
+      const sessionData = {
+        model: 'gpt-4o', // Используем модель
+        voice: 'alloy', // Пример голосового движка
+      };
+
+      ws.send(JSON.stringify({ type: 'session.create', data: sessionData }));
+    };
+
+    ws.onmessage = event => {
+      const message = JSON.parse(event.data);
+      if (message.type === 'audio_base64') {
+        console.log('Получен Base64 аудио:', message.data);
+        // Воспроизводим аудио от сервера
+        const audioData = message.data; // получаем аудио в формате Base64
+        playAudioFromBase64(audioData); // Воспроизводим аудио
+      } else if (message.error) {
+        console.error('Ошибка от сервера:', message.error);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket отключен');
+    };
+
+    ws.onerror = error => {
+      console.error('Ошибка WebSocket:', error);
+    };
+
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close(); // Закрываем WebSocket при размонтировании
+      }
+    };
   }, []);
 
-  // Запуск записи
+  const floatToBase64 = (float32Array: Float32Array) => {
+    const buffer = new ArrayBuffer(float32Array.length * 2);
+    const view = new DataView(buffer);
+
+    for (let i = 0; i < float32Array.length; i++) {
+      let value = Math.max(-1, Math.min(1, float32Array[i]));
+      view.setInt16(i * 2, value < 0 ? value * 0x8000 : value * 0x7fff, true);
+    }
+
+    const uint8Array = new Uint8Array(buffer);
+    return btoa(String.fromCharCode(...uint8Array));
+  };
+
+  const sendAudioToServer = (audioBuffer: Float32Array) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      const base64Audio = floatToBase64(audioBuffer);
+      // Отправляем данные с типом 'message'
+      wsRef.current.send(
+        JSON.stringify({
+          type: 'message',
+          data: {
+            role: 'user',
+            content: [
+              {
+                type: 'input_audio',
+                audio: base64Audio,
+              },
+            ],
+          },
+        })
+      );
+    } else {
+      console.error('WebSocket не подключен или закрыт');
+    }
+  };
+
+  const playAudioFromBase64 = (base64Audio: string) => {
+    // Преобразуем Base64 строку обратно в бинарные данные
+    const audioData = atob(base64Audio);
+    const buffer = new ArrayBuffer(audioData.length);
+    const view = new Uint8Array(buffer);
+
+    for (let i = 0; i < audioData.length; i++) {
+      view[i] = audioData.charCodeAt(i);
+    }
+
+    // Создаем аудио контекст и воспроизводим
+    const audioContext = new AudioContext();
+    audioContext.decodeAudioData(
+      buffer,
+      decodedData => {
+        const source = audioContext.createBufferSource();
+        source.buffer = decodedData;
+        source.connect(audioContext.destination);
+        source.start();
+      },
+      error => {
+        console.error('Ошибка при декодировании аудио:', error);
+      }
+    );
+  };
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -41,29 +148,35 @@ export default function VoiceRecording() {
 
       setIsRecording(true);
 
-      // Создаем MediaRecorder
       const recorder = new MediaRecorder(stream);
       setMediaRecorder(recorder);
 
-      // Начинаем запись
+      recorder.ondataavailable = async event => {
+        const audioContext = new AudioContext();
+        const arrayBuffer = await event.data.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        const channelData = audioBuffer.getChannelData(0);
+
+        sendAudioToServer(channelData); // Отправляем данные на сервер
+      };
+
       recorder.start();
     } catch (err) {
       console.error('Ошибка доступа к микрофону:', err);
     }
   };
 
-  // Остановка записи
   const stopRecording = () => {
-    if (audioStream) {
-      const tracks = audioStream.getTracks();
-      tracks.forEach(track => track.stop());
-    }
-    setAudioStream(null);
-    setIsRecording(false);
-
-    if (mediaRecorder) {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
     }
+
+    if (audioStream) {
+      audioStream.getTracks().forEach(track => track.stop());
+      setAudioStream(null);
+    }
+
+    setIsRecording(false);
   };
 
   const handleToggle = () => {
@@ -78,7 +191,7 @@ export default function VoiceRecording() {
   };
 
   return (
-    <section className="w-[552px] pt-[77px] px-[168px] pb-[20px] bg-secondaryBackground rounded-xl">
+    <Section className={'w-[552px] '}>
       <div className="mb-[26px] text-center">
         {isRecording && mediaRecorder ? (
           <LiveAudioVisualizer
@@ -102,6 +215,6 @@ export default function VoiceRecording() {
       </div>
 
       <audio ref={audioRef} style={{ display: 'none' }} />
-    </section>
+    </Section>
   );
 }
