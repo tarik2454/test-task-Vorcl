@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Dropdown,
   DropdownTrigger,
@@ -16,12 +16,24 @@ import {
   TableCell,
   Spinner,
 } from '@nextui-org/react';
+import Section from '@/shared/components/Section';
+import Container from '@/shared/components/Container';
 
 interface StockData {
-  [key: string]: {
-    [key: string]: string;
-  };
+  symbol: string;
+  name: string;
+  capitalization: string;
+  price: string;
+  priceChangeDay: string;
+  priceChangeMonth: string;
 }
+
+const styles = {
+  label: '!text-red-500',
+  input: ['!bg-red'],
+  innerWrapper: '!bg-red',
+  inputWrapper: ['!bg-red'],
+};
 
 export default function ShowStock() {
   const [symbol, setSymbol] = useState('');
@@ -31,23 +43,18 @@ export default function ShowStock() {
   const [selectedCountry, setSelectedCountry] = useState<string>('US');
 
   const handleFetchStocks = async () => {
-    console.log('Fetching stock data...'); // Логируем начало запроса
     if (!symbol) {
       setError('Please enter a stock symbol');
       return;
     }
-    // if (!selectedCountry) {
-    //   setError('Please enter a stock country');
-    //   return;
-    // }
 
     setError(null);
     setStockData(null);
-    setLoading(true); // Показываем индикатор загрузки
+    setLoading(true);
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/stock?symbol=${symbol}&country=${selectedCountry}`, // Передаем selectedCountry
+        `http://localhost:3001/api/stock?symbol=${symbol}&country=${selectedCountry}`,
         {
           method: 'GET',
         }
@@ -58,137 +65,163 @@ export default function ShowStock() {
       }
 
       const data = await response.json();
-      console.log('API Response:', data); // Логируем структуру данных
 
-      if (
-        data?.chart?.result?.length > 0 &&
-        data.chart.result[0].indicators?.quote?.[0] &&
-        data.chart.result[0].timestamp
-      ) {
+      // Логирование полученных данных
+      console.log('API response:', data);
+
+      // Проверка на наличие данных
+      if (data?.chart?.result?.length > 0) {
         const stockResult = data.chart.result[0];
-        const stockData = stockResult.indicators.quote[0];
-        const timestamps = stockResult.timestamp;
 
-        const formattedData = timestamps.reduce(
-          (acc: StockData, timestamp: number, index: number) => {
-            const date = new Date(timestamp * 1000).toLocaleString(); // Форматируем время
-            acc[date] = {
-              '1. open': stockData.open[index].toString(),
-              '2. high': stockData.high[index].toString(),
-              '3. low': stockData.low[index].toString(),
-              '4. close': stockData.close[index].toString(),
-              '5. volume': stockData.volume[index].toString(),
-            };
-            return acc;
-          },
-          {}
-        );
+        // Получение цен и мета данных
+        const closePrices = stockResult.indicators?.quote[0]?.close;
+        const lastClosePrice = closePrices
+          ? closePrices[closePrices.length - 1]
+          : 'N/A';
 
-        console.log('Formatted Data:', formattedData); // Логируем отформатированные данные
+        // Рассчитываем изменения в цене
+        const priceChangeDay =
+          closePrices && closePrices.length > 1
+            ? ((closePrices[closePrices.length - 1] -
+                closePrices[closePrices.length - 2]) /
+                closePrices[closePrices.length - 2]) *
+              100
+            : 0;
 
-        setStockData(formattedData);
+        const priceChangeMonth =
+          closePrices && closePrices.length > 30
+            ? ((closePrices[closePrices.length - 1] -
+                closePrices[closePrices.length - 30]) /
+                closePrices[closePrices.length - 30]) *
+              100
+            : 0;
+
+        const metaData = stockResult.meta || {};
+        const stockSymbol = metaData.symbol || 'N/A';
+        const longName = metaData.longName || 'N/A';
+
+        const newStockData: StockData = {
+          symbol: stockSymbol,
+          name: longName,
+          capitalization: 'N/A', // Замените на реальные данные о капитализации, если они есть в ответе API
+          price: parseFloat(lastClosePrice.toString()).toFixed(2),
+          priceChangeDay: priceChangeDay.toFixed(2), // округляем до 2 знаков
+          priceChangeMonth: priceChangeMonth.toFixed(2), // округляем до 2 знаков
+        };
+
+        setStockData(newStockData);
       } else {
         throw new Error('Invalid data structure received');
       }
     } catch (err: unknown) {
-      console.error('Error occurred:', err); // Логируем ошибку
       const error = err as Error;
       setError(error.message || 'Error loading data');
-      setStockData(null); // Добавлено для безопасности, если ошибка происходит
+      setStockData(null);
     } finally {
-      setLoading(false); // Завершаем загрузку
+      setLoading(false);
     }
   };
 
   const handleCountryChange = (key: string | number) => {
-    console.log('Country changed:', key); // ��огируем изменение страны
-    setSelectedCountry(key.toString()); // Преобразуем в строку, если key числовой
+    setSelectedCountry(key.toString());
   };
 
-  // Подготовка данных для отображения в таблице
-  const formattedDataArray = stockData
-    ? Object.keys(stockData).map(key => ({
-        time: key,
-        open: stockData[key]['1. open'],
-        high: stockData[key]['2. high'],
-        low: stockData[key]['3. low'],
-        close: stockData[key]['4. close'],
-        volume: stockData[key]['5. volume'],
-      }))
-    : [];
+  const [value, setValue] = React.useState('junior2nextui.org');
 
-  // Проверка данных перед рендерингом таблицы
-  const isValidData = (data: any) =>
-    data.time &&
-    data.open &&
-    data.high &&
-    data.low &&
-    data.close &&
-    data.volume;
+  const validateEmail = (value: string) =>
+    value.match(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+.[A-Z]{2,4}$/i);
+
+  const isInvalid = React.useMemo(() => {
+    if (value === '') return false;
+
+    return validateEmail(value) ? false : true;
+  }, [value]);
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-semibold mb-4">Данные по акциям 📈💹</h1>
+    <Container>
+      <Section>
+        <div className="p-4">
+          <h1 className="text-large mb-4">Данные по акциям 📈💹</h1>
 
-      <div className="flex gap-4 mb-4">
-        <Dropdown>
-          <DropdownTrigger>
-            <Button>{selectedCountry || 'Выберите страну'}</Button>
-          </DropdownTrigger>
-          <DropdownMenu
-            onAction={(key: string | number) => handleCountryChange(key)}
-            aria-label="Выберите страну"
-          >
-            {['US', 'UK', 'JP'].map(item => (
-              <DropdownItem key={item}>{item}</DropdownItem>
-            ))}
-          </DropdownMenu>
-        </Dropdown>
+          <div className="flex flex-col gap-4 mb-4 font-inter-400 font-normal ">
+            <Input
+              placeholder="Enter your country"
+              onChange={e => setSelectedCountry(e.target.value)}
+              classNames={{
+                input: [
+                  'px-[18px] py-[6px] text-mainPrimaryText transition-all',
+                  'placeholder:text-customGrey-200',
+                ],
+                inputWrapper: [
+                  'h-fit min-h-fit px-[0] py-[0] bg-inherit border-[2px] border-customBlack-100 rounded-lg transition-all',
+                  'group-data-[hover=true]:bg-transparent group-data-[hover=true]:border-customBlue-100',
+                  'group-data-[focus=true]:bg-transparent group-data-[focus=true]:border-customBlue-100 group-data-[focus=true]:ring-transparent group-data-[focus=true]:ring-offset-transparent ',
+                  'group-data-[invalid=true]:!bg-transparent',
+                ],
+              }}
+            />
 
-        <Input
-          label="Символ"
-          placeholder="Введите символ акции (например, AAPL)"
-          onChange={e => setSymbol(e.target.value)}
-        />
-        <Button color="primary" onPress={handleFetchStocks}>
-          Применить
-        </Button>
-      </div>
+            <Input
+              type="email"
+              value={value}
+              placeholder="Enter symbol or name"
+              onValueChange={setValue}
+              isInvalid={isInvalid}
+              color={isInvalid ? 'danger' : 'success'}
+              errorMessage="Please enter a valid email"
+              // classNames={{
+              //   input: [
+              //     'px-[18px] py-[6px] text-mainPrimaryText transition-all',
+              //     'placeholder:text-customGrey-200',
+              //   ],
+              //   inputWrapper: [
+              //     'h-fit min-h-fit px-[0] py-[0] bg-inherit border-[2px] border-customBlack-100 rounded-lg transition-all',
+              //     'group-data-[hover=true]:bg-transparent group-data-[hover=true]:border-customBlue-100',
+              //     'group-data-[focus=true]:bg-transparent group-data-[focus=true]:border-customBlue-100 group-data-[focus=true]:ring-transparent group-data-[focus=true]:ring-offset-transparent ',
+              //     'group-data-[invalid=true]:!bg-transparent',
+              //   ],
+              // }}
+              classNames={{
+                input: 'input', // Используем обычные классы CSS
+                inputWrapper: 'inputWrapper', // Используем обычные классы CSS
+              }}
+            />
+          </div>
 
-      {error && <p className="text-red-600">{error}</p>}
+          {/* {error && <p className="text-red-600">{error}</p>} */}
 
-      {loading ? (
-        <div className="flex justify-center mt-4">
-          <Spinner size="md" />
+          {loading ? (
+            <div className="flex justify-center mt-4">
+              <Spinner size="md" />
+            </div>
+          ) : stockData ? (
+            <div className="overflow-auto max-h-96">
+              <Table aria-label="Stock Data" className="text-black">
+                <TableHeader>
+                  <TableColumn>Symbol</TableColumn>
+                  <TableColumn>Name</TableColumn>
+                  <TableColumn>Capitalization</TableColumn>
+                  <TableColumn>Price</TableColumn>
+                  <TableColumn>Price change per day</TableColumn>
+                  <TableColumn>Price change per month</TableColumn>
+                </TableHeader>
+                <TableBody>
+                  <TableRow key={stockData.symbol}>
+                    <TableCell>{stockData.symbol}</TableCell>
+                    <TableCell>{stockData.name}</TableCell>
+                    <TableCell>{stockData.capitalization}</TableCell>
+                    <TableCell>{stockData.price}</TableCell>
+                    <TableCell>{stockData.priceChangeDay}%</TableCell>
+                    <TableCell>{stockData.priceChangeMonth}%</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <p>Нет данных для отображения</p>
+          )}
         </div>
-      ) : formattedDataArray.length > 0 ? (
-        <div className="overflow-auto max-h-96">
-          <Table aria-label="Stock Data" className="text-black">
-            <TableHeader>
-              <TableColumn>Time</TableColumn>
-              <TableColumn>Open</TableColumn>
-              <TableColumn>High</TableColumn>
-              <TableColumn>Low</TableColumn>
-              <TableColumn>Close</TableColumn>
-              <TableColumn>Volume</TableColumn>
-            </TableHeader>
-            <TableBody>
-              {formattedDataArray.filter(isValidData).map((data, index) => (
-                <TableRow key={index}>
-                  <TableCell>{data.time}</TableCell>
-                  <TableCell>{data.open}</TableCell>
-                  <TableCell>{data.high}</TableCell>
-                  <TableCell>{data.low}</TableCell>
-                  <TableCell>{data.close}</TableCell>
-                  <TableCell>{data.volume}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      ) : (
-        <p>Нет данных для отображения</p>
-      )}
-    </div>
+      </Section>
+    </Container>
   );
 }

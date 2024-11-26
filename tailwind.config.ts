@@ -32,6 +32,9 @@ export default {
         white: '#FFFFFF',
         current: 'currentColor',
         transparent: 'transparent',
+        success: '#17C964',
+        warning: '#F5A524',
+        danger: '#F31260',
       },
       fontFamily: {
         'inter-400': ['Inter-400', 'sans-serif'],
@@ -68,11 +71,34 @@ export default {
       transitionDuration: {
         '250': '250ms',
       },
+      // outlineWidth: {
+      //   0: '0px',
+      // },
+      // input: {
+      //   base: {
+      //     background: 'transparent',
+      //     color: 'red',
+      //     placeholder: 'blue',
+      //   },
+      //   wrapper: {
+      //     shadow: 'shadow-xl',
+      //     background: '!bg-red-500',
+      //     hover: 'hover:bg-default-200/70 dark:hover:bg-default/70',
+      //     focus:
+      //       'focus-within:!bg-default-200/50 dark:focus-within:!bg-default/60',
+      //     cursor: '!cursor-text',
+      //   },
+      //   label: '!text-red',
+      // },
     },
   },
 
   plugins: [
     nextui({
+      // themes: {
+      //   // extend: {},
+      // },
+
       layout: {},
     }),
   ],
