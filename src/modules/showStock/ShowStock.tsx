@@ -1,23 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
-import {
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-  Button,
-  Input,
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-  Spinner,
-} from '@nextui-org/react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 import Section from '@/shared/components/Section';
 import Container from '@/shared/components/Container';
+import FormItem from '@/shared/components/FormItem';
+import { SubmitHandler, useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import validationSchema from '@/shared/helpers/validation-schema';
 
 interface StockData {
   symbol: string;
@@ -28,12 +18,11 @@ interface StockData {
   priceChangeMonth: string;
 }
 
-const styles = {
-  label: '!text-red-500',
-  input: ['!bg-red'],
-  innerWrapper: '!bg-red',
-  inputWrapper: ['!bg-red'],
-};
+interface FormData {
+  country?: string;
+  email?: string;
+  symbolName?: string;
+}
 
 export default function ShowStock() {
   const [symbol, setSymbol] = useState('');
@@ -42,7 +31,9 @@ export default function ShowStock() {
   const [loading, setLoading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string>('US');
 
-  const handleFetchStocks = async () => {
+  const ALPHA_VANTAGE_API_KEY = 'B2O6T9PA7J5NAAZ0'; // Укажите свой ключ API Alpha Vantage
+
+  const fetchStockData = async (symbol: string) => {
     if (!symbol) {
       setError('Please enter a stock symbol');
       return;
@@ -53,173 +44,162 @@ export default function ShowStock() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `http://localhost:3001/api/stock?symbol=${symbol}&country=${selectedCountry}`,
-        {
-          method: 'GET',
-        }
-      );
+      const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}&outputsize=compact`;
 
-      if (!response.ok) {
-        throw new Error('Error loading data');
-      }
-
-      const data = await response.json();
+      const response = await axios.get(url);
 
       // Логирование полученных данных
-      console.log('API response:', data);
+      console.log('API response:', response.data);
 
-      // Проверка на наличие данных
-      if (data?.chart?.result?.length > 0) {
-        const stockResult = data.chart.result[0];
+      const data = response.data['Time Series (Daily)'];
 
-        // Получение цен и мета данных
-        const closePrices = stockResult.indicators?.quote[0]?.close;
-        const lastClosePrice = closePrices
-          ? closePrices[closePrices.length - 1]
-          : 'N/A';
+      if (data) {
+        const dates = Object.keys(data);
+        const latestDate = dates[0];
+        const secondLatestDate = dates[1];
 
-        // Рассчитываем изменения в цене
+        const latestData = data[latestDate];
+        const secondLatestData = data[secondLatestDate];
+
+        const lastClosePrice = parseFloat(latestData['4. close']);
+        const secondLastClosePrice = parseFloat(secondLatestData['4. close']);
+
         const priceChangeDay =
-          closePrices && closePrices.length > 1
-            ? ((closePrices[closePrices.length - 1] -
-                closePrices[closePrices.length - 2]) /
-                closePrices[closePrices.length - 2]) *
-              100
-            : 0;
+          ((lastClosePrice - secondLastClosePrice) / secondLastClosePrice) *
+          100;
 
+        const monthData = dates.slice(0, 30); // последние 30 дней для расчета изменения за месяц
+        const monthStartData = data[monthData[monthData.length - 1]];
         const priceChangeMonth =
-          closePrices && closePrices.length > 30
-            ? ((closePrices[closePrices.length - 1] -
-                closePrices[closePrices.length - 30]) /
-                closePrices[closePrices.length - 30]) *
-              100
-            : 0;
+          ((lastClosePrice - parseFloat(monthStartData['4. close'])) /
+            parseFloat(monthStartData['4. close'])) *
+          100;
 
-        const metaData = stockResult.meta || {};
-        const stockSymbol = metaData.symbol || 'N/A';
-        const longName = metaData.longName || 'N/A';
-
-        const newStockData: StockData = {
-          symbol: stockSymbol,
-          name: longName,
-          capitalization: 'N/A', // Замените на реальные данные о капитализации, если они есть в ответе API
-          price: parseFloat(lastClosePrice.toString()).toFixed(2),
-          priceChangeDay: priceChangeDay.toFixed(2), // округляем до 2 знаков
-          priceChangeMonth: priceChangeMonth.toFixed(2), // округляем до 2 знаков
+        const stockData: StockData = {
+          symbol,
+          name: 'Company Name', // Используйте данные из API или сделайте запрос для получения полного имени
+          capitalization: 'N/A', // Здесь может быть капитализация, если она доступна
+          price: lastClosePrice.toFixed(2),
+          priceChangeDay: priceChangeDay.toFixed(2),
+          priceChangeMonth: priceChangeMonth.toFixed(2),
         };
 
-        setStockData(newStockData);
+        setStockData(stockData);
       } else {
         throw new Error('Invalid data structure received');
       }
-    } catch (err: unknown) {
-      const error = err as Error;
-      setError(error.message || 'Error loading data');
+    } catch (err: any) {
+      setError(err.message || 'Error loading data');
       setStockData(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCountryChange = (key: string | number) => {
-    setSelectedCountry(key.toString());
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { isSubmitSuccessful, errors },
+  } = useForm<FormData>({
+    resolver: yupResolver(validationSchema),
+  });
+
+  const onSubmit: SubmitHandler<FormData> = data => {
+    console.log(data);
+    fetchStockData(data.symbolName || '');
   };
 
-  const [value, setValue] = React.useState('junior2nextui.org');
-
-  const validateEmail = (value: string) =>
-    value.match(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+.[A-Z]{2,4}$/i);
-
-  const isInvalid = React.useMemo(() => {
-    if (value === '') return false;
-
-    return validateEmail(value) ? false : true;
-  }, [value]);
+  useEffect(() => {
+    if (isSubmitSuccessful) {
+      reset();
+    }
+  }, [isSubmitSuccessful, reset]);
 
   return (
     <Container>
-      <Section>
-        <div className="p-4">
-          <h1 className="text-large mb-4">Данные по акциям 📈💹</h1>
-
-          <div className="flex flex-col gap-4 mb-4 font-inter-400 font-normal ">
-            <Input
+      <Section styles="pt-[60px] pb-[60px] px-[60px]">
+        <div className="flex flex-col items-center">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col gap-4 max-w-[282px] mb-4 font-Inter-400 font-normal text-sm"
+          >
+            <FormItem
+              type="text"
+              name="country"
               placeholder="Enter your country"
-              onChange={e => setSelectedCountry(e.target.value)}
-              classNames={{
-                input: [
-                  'px-[18px] py-[6px] text-mainPrimaryText transition-all',
-                  'placeholder:text-customGrey-200',
-                ],
-                inputWrapper: [
-                  'h-fit min-h-fit px-[0] py-[0] bg-inherit border-[2px] border-customBlack-100 rounded-lg transition-all',
-                  'group-data-[hover=true]:bg-transparent group-data-[hover=true]:border-customBlue-100',
-                  'group-data-[focus=true]:bg-transparent group-data-[focus=true]:border-customBlue-100 group-data-[focus=true]:ring-transparent group-data-[focus=true]:ring-offset-transparent ',
-                  'group-data-[invalid=true]:!bg-transparent',
-                ],
-              }}
+              register={register}
+              error={errors.country}
             />
-
-            <Input
-              type="email"
-              value={value}
+            <FormItem
+              type="text"
+              name="symbolName"
               placeholder="Enter symbol or name"
-              onValueChange={setValue}
-              isInvalid={isInvalid}
-              color={isInvalid ? 'danger' : 'success'}
-              errorMessage="Please enter a valid email"
-              // classNames={{
-              //   input: [
-              //     'px-[18px] py-[6px] text-mainPrimaryText transition-all',
-              //     'placeholder:text-customGrey-200',
-              //   ],
-              //   inputWrapper: [
-              //     'h-fit min-h-fit px-[0] py-[0] bg-inherit border-[2px] border-customBlack-100 rounded-lg transition-all',
-              //     'group-data-[hover=true]:bg-transparent group-data-[hover=true]:border-customBlue-100',
-              //     'group-data-[focus=true]:bg-transparent group-data-[focus=true]:border-customBlue-100 group-data-[focus=true]:ring-transparent group-data-[focus=true]:ring-offset-transparent ',
-              //     'group-data-[invalid=true]:!bg-transparent',
-              //   ],
-              // }}
-              classNames={{
-                input: 'input', // Используем обычные классы CSS
-                inputWrapper: 'inputWrapper', // Используем обычные классы CSS
-              }}
+              register={register}
+              error={errors.symbolName}
             />
+            <button
+              type="submit"
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Submit
+            </button>
+          </form>
+
+          {error && <p className="text-red-500">{error}</p>}
+
+          <div className="overflow-auto max-h-96 w-full">
+            <table className="table-auto w-full text-white border-collapse border border-gray-300">
+              <thead className="bg-gray-200">
+                <tr>
+                  <th className="border border-gray-300 px-4 py-2">№</th>
+                  <th className="border border-gray-300 px-4 py-2">Symbol</th>
+                  <th className="border border-gray-300 px-4 py-2">Name</th>
+                  <th className="border border-gray-300 px-4 py-2">
+                    Capitalization
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2">Price</th>
+                  <th className="border border-gray-300 px-4 py-2">
+                    Price change per day
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2">
+                    Price change per month
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading || !stockData ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-4">
+                      {loading ? 'Loading...' : 'No data available'}
+                    </td>
+                  </tr>
+                ) : (
+                  <tr>
+                    <td className="border border-gray-300 px-4 py-2">1</td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {stockData.symbol}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {stockData.name}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {stockData.capitalization}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {stockData.price}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {stockData.priceChangeDay}%
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {stockData.priceChangeMonth}%
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-
-          {/* {error && <p className="text-red-600">{error}</p>} */}
-
-          {loading ? (
-            <div className="flex justify-center mt-4">
-              <Spinner size="md" />
-            </div>
-          ) : stockData ? (
-            <div className="overflow-auto max-h-96">
-              <Table aria-label="Stock Data" className="text-black">
-                <TableHeader>
-                  <TableColumn>Symbol</TableColumn>
-                  <TableColumn>Name</TableColumn>
-                  <TableColumn>Capitalization</TableColumn>
-                  <TableColumn>Price</TableColumn>
-                  <TableColumn>Price change per day</TableColumn>
-                  <TableColumn>Price change per month</TableColumn>
-                </TableHeader>
-                <TableBody>
-                  <TableRow key={stockData.symbol}>
-                    <TableCell>{stockData.symbol}</TableCell>
-                    <TableCell>{stockData.name}</TableCell>
-                    <TableCell>{stockData.capitalization}</TableCell>
-                    <TableCell>{stockData.price}</TableCell>
-                    <TableCell>{stockData.priceChangeDay}%</TableCell>
-                    <TableCell>{stockData.priceChangeMonth}%</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <p>Нет данных для отображения</p>
-          )}
         </div>
       </Section>
     </Container>

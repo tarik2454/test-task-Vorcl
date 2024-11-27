@@ -1,12 +1,10 @@
 import type { Config } from 'tailwindcss';
-import { nextui } from '@nextui-org/react';
 
 export default {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
-    './node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}',
     './src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
@@ -25,6 +23,7 @@ export default {
         customGrey: {
           100: '#ECEDEE',
           200: '#D4D4D8',
+          300: '#71717A',
         },
         mainPrimaryText: '#FFFFFF',
         mainBackground: '#121212',
@@ -33,14 +32,13 @@ export default {
         current: 'currentColor',
         transparent: 'transparent',
         success: '#17C964',
-        warning: '#F5A524',
         danger: '#F31260',
       },
       fontFamily: {
-        'inter-400': ['Inter-400', 'sans-serif'],
-        'inter-500': ['Inter-500', 'sans-serif'],
-        'inter-600': ['Inter-600', 'sans-serif'],
-        'inter-700': ['Inter-700', 'sans-serif'],
+        'Inter-400': ['Inter-400', 'sans-serif'],
+        'Inter-500': ['Inter-500', 'sans-serif'],
+        'Inter-600': ['Inter-600', 'sans-serif'],
+        'Inter-700': ['Inter-700', 'sans-serif'],
       },
       fontSize: {
         xs: ['12px', '1.25'],
@@ -92,14 +90,4 @@ export default {
       // },
     },
   },
-
-  plugins: [
-    nextui({
-      // themes: {
-      //   // extend: {},
-      // },
-
-      layout: {},
-    }),
-  ],
 } satisfies Config;

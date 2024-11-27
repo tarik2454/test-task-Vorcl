@@ -34,9 +34,7 @@
     font-display: swap;
     src: url('/assets/fonts/Inter_700-Bold.ttf') format('truetype');
   }
-}
 
-@layer base {
   body {
     font-family: 'Inter-600', sans-serif;
     font-size: 12px;
@@ -57,71 +55,12 @@
   }
 }
 
-.svg-style {
-  svg g {
-    g:nth-child(6) {
-      g {
-        path {
-          fill: rgb(193, 35, 67) !important;
-        }
-      }
-    }
-
-    g:nth-child(8) {
-      g {
-        path {
-          fill: white !important;
-        }
-      }
-    }
+@layer components {
+  .input,
+  .textarea {
+    @apply block w-full px-[18px] py-[6px] text-mainPrimaryText bg-inherit border-[2px] rounded-lg border-customGrey-300 border-opacity-40 outline-none transition-all;
+    @apply placeholder:text-customGrey-300;
+    @apply hover:border-customBlue-200;
+    @apply focus:border-customBlue-200;
   }
-}
-
-/* InputNextUi.module.css */
-.inputWrapper {
-  height: fit-contentfit;
-  min-height: fit-content;
-  padding: 0;
-  background-color: inherit;
-  border: 2px solid theme('colors.customBlack.100');
-  border-radius: theme('borderRadius.lg'); /* rounded-lg */
-  transition: all 0.3s;
-}
-
-.inputWrapper:hover {
-  background-color: transparent;
-}
-
-.inputWrapper:focus-within {
-  background-color: transparent;
-  border-color: theme('colors.customBlue.100');
-  box-shadow: transparent;
-  ring-offset: transparent;
-}
-
-.inputWrapper.invalid {
-  background-color: transparent !important;
-}
-
-.input {
-  padding: 18px 6px;
-  color: theme('colors.mainPrimaryText');
-  transition: all 0.3s;
-}
-
-.input::placeholder {
-  color: theme('colors.customGrey.200');
-}
-
-.input.success {
-  border-color: theme('colors.success');
-}
-
-.input.danger {
-  border-color: theme('colors.danger');
-  color: theme('colors.danger');
-}
-
-.input.danger::placeholder {
-  color: theme('colors.danger');
 }
