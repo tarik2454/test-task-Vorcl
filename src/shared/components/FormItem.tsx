@@ -4,6 +4,7 @@ import {
   Path,
   FieldError,
 } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
 
 interface FormItemProps<T extends FieldValues> {
   id?: string;
@@ -13,7 +14,7 @@ interface FormItemProps<T extends FieldValues> {
   placeholder?: string;
   register: UseFormRegister<T>;
   error?: FieldError;
-  style?: React.CSSProperties;
+  styles?: string;
 }
 
 export default function FormItem<T extends FieldValues>({
@@ -24,7 +25,7 @@ export default function FormItem<T extends FieldValues>({
   placeholder,
   register,
   error,
-  style,
+  styles,
 }: FormItemProps<T>) {
   return (
     <div>
@@ -35,7 +36,7 @@ export default function FormItem<T extends FieldValues>({
         <input
           type="text"
           id={id}
-          className="input"
+          className={twMerge('input', styles)}
           placeholder={placeholder}
           {...register(name)}
         />
@@ -44,7 +45,7 @@ export default function FormItem<T extends FieldValues>({
         <input
           type="email"
           id={id}
-          className="input"
+          className={twMerge('input', styles)}
           placeholder={placeholder}
           {...register(name)}
         />

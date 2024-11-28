@@ -11,7 +11,7 @@ export default function Section({
   return (
     <section
       className={twMerge(
-        `pt-[77px] pb-[20px] bg-secondaryBackground rounded-xl`,
+        `pt-[77px] px-[168px] pb-[20px] bg-secondaryBackground rounded-xl`,
         styles
       )}
     >

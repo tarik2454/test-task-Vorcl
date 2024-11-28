@@ -9,7 +9,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import validationSchema from '@/shared/helpers/validation-schema';
 
-interface StockData {
+interface StockDataProps {
   symbol: string;
   name: string;
   capitalization: string;
@@ -18,18 +18,20 @@ interface StockData {
   priceChangeMonth: string;
 }
 
-interface FormData {
+interface FormDataProps {
   country?: string;
-  email?: string;
   symbolName?: string;
+  email?: string;
 }
 
 export default function ShowStock() {
   const [symbol, setSymbol] = useState('');
-  const [stockData, setStockData] = useState<StockData | null>(null);
+  const [stockData, setStockData] = useState<StockDataProps | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string>('US');
+
+  const [isEmailRequired, setIsEmailRequired] = useState<boolean>(false); // Define the state for `isEmailRequired`
 
   const ALPHA_VANTAGE_API_KEY = 'B2O6T9PA7J5NAAZ0'; // Укажите свой ключ API Alpha Vantage
 
@@ -75,7 +77,7 @@ export default function ShowStock() {
             parseFloat(monthStartData['4. close'])) *
           100;
 
-        const stockData: StockData = {
+        const stockData: StockDataProps = {
           symbol,
           name: 'Company Name', // Используйте данные из API или сделайте запрос для получения полного имени
           capitalization: 'N/A', // Здесь может быть капитализация, если она доступна
@@ -101,12 +103,12 @@ export default function ShowStock() {
     handleSubmit,
     reset,
     formState: { isSubmitSuccessful, errors },
-  } = useForm<FormData>({
-    resolver: yupResolver(validationSchema),
+  } = useForm<FormDataProps>({
+    resolver: yupResolver(validationSchema(isEmailRequired)),
   });
 
-  const onSubmit: SubmitHandler<FormData> = data => {
-    console.log(data);
+  const onSubmit: SubmitHandler<FormDataProps> = data => {
+
     fetchStockData(data.symbolName || '');
   };
 
@@ -118,7 +120,7 @@ export default function ShowStock() {
 
   return (
     <Container>
-      <Section styles="pt-[60px] pb-[60px] px-[60px]">
+      <Section styles="py-[60px] p-[60px]">
         <div className="flex flex-col items-center">
           <form
             onSubmit={handleSubmit(onSubmit)}

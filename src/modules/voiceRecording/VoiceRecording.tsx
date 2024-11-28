@@ -191,7 +191,7 @@ export default function VoiceRecording() {
   };
 
   return (
-    <Section className={'w-[552px] '}>
+    <Section styles={'min-w-[552px]'}>
       <div className="mb-[26px] text-center">
         {isRecording && mediaRecorder ? (
           <LiveAudioVisualizer
