@@ -29,7 +29,7 @@ export default function FormItem<T extends FieldValues>({
 }: FormItemProps<T>) {
   return (
     <div>
-      <label htmlFor={id} className="block mb-1">
+      <label htmlFor={id} className="block">
         {labelText}
       </label>
       {type === 'text' && (
@@ -51,7 +51,11 @@ export default function FormItem<T extends FieldValues>({
         />
       )}
 
-      {error && <span className="error">{error.message}</span>}
+      {error && (
+        <span className="mt-1 ml-1 text-failure leading-5">
+          {error.message}
+        </span>
+      )}
     </div>
   );
 }

@@ -32,7 +32,7 @@ export default {
         current: 'currentColor',
         transparent: 'transparent',
         success: '#17C964',
-        danger: '#F31260',
+        failure: '#F31260',
       },
       fontFamily: {
         'Inter-400': ['Inter-400', 'sans-serif'],

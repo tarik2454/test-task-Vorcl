@@ -3,7 +3,7 @@ import Link from 'next/link';
 export default function NavBar() {
   const navItems = [
     {
-      href: '/audio',
+      href: '/',
       label: 'Features',
       afterColor: '#c65dc2',
       textColor: 'text-customPink-100',

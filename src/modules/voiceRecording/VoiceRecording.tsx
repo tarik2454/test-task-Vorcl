@@ -5,6 +5,7 @@ import { useLottie } from 'lottie-react';
 import freeVoiceAnimation from '../../assets/animations/freeVoiceAnimation.json';
 import { LiveAudioVisualizer } from 'react-audio-visualize';
 import Section from '@/shared/components/Section';
+import { redirect } from 'next/dist/server/api-utils';
 
 export default function VoiceRecording() {
   const { View, play, stop } = useLottie({

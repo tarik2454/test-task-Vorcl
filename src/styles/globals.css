@@ -58,9 +58,9 @@
 @layer components {
   .input,
   .textarea {
-    @apply block w-full px-[18px] py-[6px] text-mainPrimaryText bg-inherit border-[2px] rounded-lg border-customGrey-300 border-opacity-40 outline-none transition-all;
-    @apply placeholder:text-customGrey-300;
-    @apply hover:border-customBlue-200;
-    @apply focus:border-customBlue-200;
+    @apply block w-full px-[18px] py-[6px] text-mainPrimaryText bg-inherit border-[2px] rounded-lg border-customGrey-300 border-opacity-40 outline-none transition-all 
+    placeholder:text-customGrey-300 
+    hover:border-customBlue-200
+    focus:border-customBlue-200;
   }
 }

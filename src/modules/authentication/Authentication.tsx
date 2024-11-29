@@ -8,14 +8,15 @@ import FormItem from '@/shared/components/FormItem';
 import validationSchema from '@/shared/helpers/validation-schema';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface FormDataProps {
   email?: string;
 }
 
 export default function Authentication({}) {
-  const [message, setMessage] = useState<string>('');
-  const [isEmailRequired, setIsEmailRequired] = useState<boolean>(true); 
+  const [isEmailRequired, setIsEmailRequired] = useState<boolean>(true);
 
   const {
     register,
@@ -23,25 +24,22 @@ export default function Authentication({}) {
     reset,
     formState: { isSubmitSuccessful, errors },
   } = useForm<FormDataProps>({
-    resolver: yupResolver(validationSchema(isEmailRequired)), 
+    resolver: yupResolver(validationSchema(isEmailRequired)),
   });
 
   const onSubmit: SubmitHandler<FormDataProps> = async ({ email }) => {
     try {
-
       if (!email) {
         throw new Error('Email is required');
       }
-      const successMessage = await registerUser(email);
-      setMessage(successMessage);
-    } catch (err: any) {
-      setMessage(err.message || 'An error occurred.');
+      const response = await registerUser(email);
+      toast.success(response);
+    } catch (error: any) {
+      toast.error(error);
     }
   };
 
   useEffect(() => {
-  
-
     if (isSubmitSuccessful) {
       reset();
     }
@@ -54,28 +52,29 @@ export default function Authentication({}) {
       </h1>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="mb-4 !outline-none !focus:outline-none !activ:outline-none"
+        className="flex flex-col gap-[8px] mb-4"
+        noValidate
       >
         <FormItem
           type="email"
           name="email"
-          placeholder="Enter your email"
+          placeholder="mail &#42;"
           register={register}
           error={errors.email}
-          styles="max-w-full mb-[2px]"
+          styles="px-[13px] py-[22px]"
         />
 
         <button
-          className="w-full font-Inter-400 font-normal text-sm bg-customBlue-200 text-white text-center group-data-[focus-visible=true]:ring-0 group-data-[focus-visible=true]:ring-offset-0"
+          className="w-full py-1 font-Inter-400 font-normal text-sm bg-customBlue-200 text-white text-center rounded-lg"
           type="submit"
         >
           Continue with <br /> Email
         </button>
       </form>
 
-      <div className="flex justify-center font-Inter-400 font-normal text-sm">
+      <div className="flex justify-center items-end gap-[6px] font-Inter-400 font-normal text-sm">
         <p className="text-customGrey-100">Already have an account? </p>
-        <Link className="text-customBlue-200" href="/account">
+        <Link className="text-customBlue-200" href="#">
           Log In
         </Link>
       </div>
