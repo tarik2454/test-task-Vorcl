@@ -2,29 +2,32 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Section from '@/shared/components/Section';
-import registerUser from '../../services/commonAPI';
-import FormItem from '@/shared/components/FormItem';
-import validationSchema from '@/shared/helpers/validation-schema';
+
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+import { registerUser } from '../../services/commonAPI';
+
+import { validationSchemaEmail } from '@/shared/helpers/validation-schema';
+
+import Section from '@/shared/components/Section';
+import FormItem from '@/shared/components/FormItem';
+import Button from '@/shared/components/Button';
+
 interface FormDataProps {
-  email?: string;
+  email: string;
 }
 
 export default function Authentication({}) {
-  const [isEmailRequired, setIsEmailRequired] = useState<boolean>(true);
-
   const {
     register,
     handleSubmit,
     reset,
     formState: { isSubmitSuccessful, errors },
   } = useForm<FormDataProps>({
-    resolver: yupResolver(validationSchema(isEmailRequired)),
+    resolver: yupResolver(validationSchemaEmail()),
   });
 
   const onSubmit: SubmitHandler<FormDataProps> = async ({ email }) => {
@@ -64,12 +67,9 @@ export default function Authentication({}) {
           styles="px-[13px] py-[22px]"
         />
 
-        <button
-          className="w-full py-1 font-Inter-400 font-normal text-sm bg-customBlue-200 text-white text-center rounded-lg"
-          type="submit"
-        >
+        <Button type="submit">
           Continue with <br /> Email
-        </button>
+        </Button>
       </form>
 
       <div className="flex justify-center items-end gap-[6px] font-Inter-400 font-normal text-sm">

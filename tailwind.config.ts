@@ -63,31 +63,6 @@ export default {
         lg: '12px',
         xl: '24px',
       },
-      boxShadow: {
-        custom: '0 2px 25px rgba(0, 112, 243, 0.59)',
-      },
-      transitionDuration: {
-        '250': '250ms',
-      },
-      // outlineWidth: {
-      //   0: '0px',
-      // },
-      // input: {
-      //   base: {
-      //     background: 'transparent',
-      //     color: 'red',
-      //     placeholder: 'blue',
-      //   },
-      //   wrapper: {
-      //     shadow: 'shadow-xl',
-      //     background: '!bg-red-500',
-      //     hover: 'hover:bg-default-200/70 dark:hover:bg-default/70',
-      //     focus:
-      //       'focus-within:!bg-default-200/50 dark:focus-within:!bg-default/60',
-      //     cursor: '!cursor-text',
-      //   },
-      //   label: '!text-red',
-      // },
     },
   },
 } satisfies Config;
