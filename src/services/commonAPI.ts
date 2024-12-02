@@ -99,6 +99,7 @@ export const registerUser = async (email: string) => {
         throw new Error('A user with this email is already registered.');
       }
     }
+
     throw new Error('Something went wrong! Please try again....');
   }
 };
