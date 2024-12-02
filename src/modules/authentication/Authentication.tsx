@@ -38,7 +38,7 @@ export default function Authentication({}) {
       const response = await registerUser(email);
       toast.success(response);
     } catch (error: any) {
-      toast.error(error);
+      toast.error(error.message);
     }
   };
 

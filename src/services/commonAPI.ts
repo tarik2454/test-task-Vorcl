@@ -94,12 +94,11 @@ export const registerUser = async (email: string) => {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const status = error.response?.status;
-      if (status === 401) {
-        return 'Invalid credentials entered.';
-      } else if (status === 500) {
-        return 'Server error during registration. Please try again.';
+
+      if (status === 409) {
+        throw new Error('A user with this email is already registered.');
       }
     }
-    return 'Something went wrong! Please try again....';
+    throw new Error('Something went wrong! Please try again....');
   }
 };
